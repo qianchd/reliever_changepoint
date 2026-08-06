@@ -1,0 +1,101 @@
+url: https://qianchd.github.io/reliever_changepoint/
+destination: _site
+
+template:
+  bootstrap: 5
+  bootswatch: cosmo
+
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+    right: [search, github, lightswitch]
+
+articles:
+- title: Getting started
+  navbar: ~
+  contents:
+  - articles/relieverChangepoint
+- title: User guides
+  contents:
+  - articles/selection-workflows
+  - articles/built-in-families
+- title: Extending and developing
+  contents:
+  - articles/extending
+  - articles/architecture-and-testing
+
+reference:
+- title: Package overview
+  contents:
+  - relieverChangepoint-package
+- title: Main entry points
+  contents:
+  - reliever
+  - cv.reliever
+  - reliever_generic
+  - cv.reliever_generic
+- title: Focused wrappers
+  contents:
+  - reliever_mean
+  - reliever_var
+  - reliever_meanvar
+  - reliever_lm
+  - reliever_glm
+  - reliever_em
+  - reliever_lasso
+  - reliever_mean_crossfit
+  - reliever_lasso_crossfit
+  - reliever_kde_nll
+  - reliever_kde_nll_crossfit
+  - reliever_kde_l2
+  - reliever_nmcd
+  - reliever_ranger_crossfit
+  - reliever_mlp_crossfit
+- title: Interval losses and templates
+  contents:
+  - reg_fun_mean
+  - reg_fun_var
+  - reg_fun_meanvar
+  - reg_fun_lm
+  - reg_fun_glm
+  - reg_fun_em
+  - reg_fun_lasso_solpath
+  - reg_fun_mean_crossfit
+  - reg_fun_lasso_crossfit
+  - reg_fun_kde_nll_solpath
+  - reg_fun_kde_nll_crossfit
+  - reg_fun_kde_l2
+  - reg_fun_nmcd
+  - reg_fun_ranger_crossfit
+  - reg_fun_mlp_crossfit
+  - reg_fun_crossfit_template
+  - reg_fun_clf_crossfit_template
+- title: Selection and evaluation
+  contents:
+  - select_by_run
+  - select_across_runs
+  - select_holdout
+  - evaluate_reliever_segments
+  - plot_reliever_data
+- title: Search intervals and refinement
+  contents:
+  - create_relief_itv
+  - create_seed_itv
+  - create_wbs_itv
+  - local_refine
+  - twostep
+- title: Result methods
+  contents:
+  - plot.reliever_result
+  - plot.cv_reliever_result
+  - print.reliever_result
+  - print.cv_reliever_result
+  - print.reliever_model_selection
+  - print.reliever_summary
+  - summary.reliever_result
+  - summary.cv_reliever_result
+- title: Simulation and assessment
+  contents:
+  - dgp_linear_regression
+  - dgp_linear_regression_equal_response
+  - cp_error

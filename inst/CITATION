@@ -1,0 +1,45 @@
+citHeader("To cite relieverChangepoint in publications, please cite the relevant papers:")
+
+bibentry(
+  bibtype = "Article",
+  title = "Reliever: Relieving the Burden of Costly Model Fits for Changepoint Detection",
+  author = c(
+    person("Chengde", "Qian"),
+    person("Guanghui", "Wang"),
+    person("Changliang", "Zou")
+  ),
+  journal = "Journal of Machine Learning Research",
+  year = "2025",
+  volume = "26",
+  number = "203",
+  pages = "1--57",
+  url = "https://www.jmlr.org/papers/v26/24-1108.html",
+  textVersion =
+    paste(
+      "Qian C, Wang G, Zou C (2025).",
+      "\"Reliever: Relieving the Burden of Costly Model Fits for Changepoint Detection.\"",
+      "Journal of Machine Learning Research, 26(203), 1--57.",
+      "https://www.jmlr.org/papers/v26/24-1108.html."
+    )
+)
+
+bibentry(
+  bibtype = "Misc",
+  title = "Changepoint Detection in Complex Models: Cross-Fitting Is Needed",
+  author = c(
+    person("Chengde", "Qian"),
+    person("Guanghui", "Wang"),
+    person("Zhaojun", "Wang"),
+    person("Changliang", "Zou")
+  ),
+  year = "2024",
+  note = "arXiv:2411.07874",
+  url = "https://arxiv.org/abs/2411.07874",
+  textVersion =
+    paste(
+      "Qian C, Wang G, Wang Z, Zou C (2024).",
+      "\"Changepoint Detection in Complex Models: Cross-Fitting Is Needed.\"",
+      "arXiv:2411.07874.",
+      "https://arxiv.org/abs/2411.07874."
+    )
+)

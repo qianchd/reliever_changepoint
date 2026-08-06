@@ -1,0 +1,92 @@
+---
+title: "Built-in changepoint families"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Built-in changepoint families}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+The `cpd_family` argument chooses the interval loss and its model-fitting
+protocol. This table mirrors the complete overview in the README and adds links
+to the corresponding reference topics.
+
+| Analysis | `cpd_family` | Recommended entry point | Selection |
+| --- | --- | --- | --- |
+| Mean changes | `"mean"` | `cv.reliever()` | CPSS outer CV for K |
+| Covariance or joint mean/covariance changes | `"var"`, `"meanvar"` | `cv.reliever()` | CPSS outer CV for K |
+| Linear or generalized linear model changes | `"lm"`, `"glm"` | `cv.reliever()` | CPSS outer CV for K |
+| Exponential-family distribution changes | `"em"` | `cv.reliever()` | CPSS outer CV for K |
+| Ordinary lasso path | `"lasso"` | `cv.reliever()` | CPSS for normalized lambda and K |
+| Cross-fitting lasso | `"lasso_crossfit"` | `reliever()` | Interval-adaptive or homogeneous-hyperparameter ReCV |
+| KDE negative log-likelihood | `"kde_nll"`, `"kde_nll_crossfit"` | `reliever()` | ReCV for data-driven bandwidth selection |
+| Fixed-kernel KDE-L2 | `"kde_l2"` | `cv.reliever()` | CPSS outer CV for K |
+| Univariate nonparametric CDF loss | `"nmcd"` | `cv.reliever()` | CPSS outer CV for K |
+| Optional classifier losses | `"ranger_crossfit"`, `"mlp_crossfit"` | `reliever()` | Interval-adaptive or homogeneous-hyperparameter ReCV |
+
+## NMCD with outer CV
+
+NMCD detects general univariate distributional changes. Within outer CV, its
+empirical reference is computed from the training observations in each fold.
+
+```{r nmcd}
+library(relieverChangepoint)
+
+set.seed(2026)
+n_seg <- 90L
+x_nmcd <- c(
+  rnorm(n_seg, mean = -4, sd = 0.35),
+  rnorm(n_seg, mean = 4, sd = 0.35),
+  rnorm(n_seg, mean = 0, sd = 0.35)
+)
+
+fit_nmcd <- cv.reliever(
+  X = x_nmcd,
+  cpd_family = "nmcd",
+  cpn_max = 4,
+  dm = 18,
+  cov_rate = 0.7,
+  method = "SN",
+  nfolds = 5,
+  dc_grid_size = 10
+)
+
+summary(fit_nmcd)
+stopifnot(identical(summary(fit_nmcd)$K_hat, 2L))
+```
+
+## Fixed-kernel KDE-L2 with outer CV
+
+KDE-L2 accepts either a kernel function or a precomputed kernel-evaluation
+matrix. In the following interface, the Gaussian kernel and bandwidth are fixed
+before CPSS selects K.
+
+```{r kde-l2}
+set.seed(2026)
+n_seg <- 50L
+x_kde <- c(
+  rnorm(n_seg, mean = -3, sd = 0.45),
+  rnorm(n_seg, mean = 3, sd = 0.45),
+  rnorm(n_seg, mean = 0, sd = 0.45)
+)
+
+fit_kde <- cv.reliever(
+  X = x_kde,
+  cpd_family = "kde_l2",
+  kernel = "gaussian",
+  bandwidth = 0.8,
+  cpn_max = 4,
+  dm = 10,
+  cov_rate = 0.6,
+  method = "SN",
+  nfolds = 5,
+  dc_grid_size = 5
+)
+
+summary(fit_kde)
+stopifnot(identical(summary(fit_kde)$K_hat, 2L))
+```
+
+For family-specific data types and arguments, open the relevant `reliever_*()`
+or `reg_fun_*()` reference topic. The four main entry-point topics describe the
+common search and selection controls once, avoiding repeated parameter text.

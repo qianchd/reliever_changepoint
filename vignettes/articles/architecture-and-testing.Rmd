@@ -1,0 +1,67 @@
+---
+title: "Architecture and testing"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Architecture and testing}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+This guide describes the current package structure for contributors. It focuses
+on maintained interfaces rather than historical implementation decisions.
+
+## Execution layers
+
+1. The public entry points validate and normalize complete input data.
+2. Built-in wrappers choose a `reg_fun` and prepare family-specific data once.
+3. `reliever_generic()` constructs the candidate grid and loss cache.
+4. The C++ search engine consumes cached interval costs and returns candidate
+   segmentations.
+5. Result helpers attach run metadata, summaries, plots, and post-fit selection.
+
+Keep whole-data preparation in the outer wrapper. An interval `reg_fun` should
+fit and score only the requested rows, apart from methods whose statistical
+definition requires a global construction.
+
+## Outer cross-validation
+
+`cv.reliever_generic()` builds ordered folds on the full time axis. Each fold
+fits on the remaining observations, evaluates candidate segments on the held-
+out observations, aggregates comparable loss positions, and then makes one
+full-data fit. Built-in `cv.reliever()` dispatches to this engine after the
+family-specific preparation step.
+
+## Generated documentation
+
+Public help pages are generated from roxygen comments in `R/`. Do not edit
+files in `man/` directly. After changing a public interface, run:
+
+```r
+devtools::document()
+```
+
+The pkgdown articles live under `vignettes/articles/` and are excluded from the
+CRAN source bundle. GitHub Actions builds the website into a deployment
+artifact; generated HTML is not committed to the repository.
+
+## Test modes
+
+The default test mode is `quick`. Set `RELIEVER_TEST_MODE` before running tests
+to include additional suites:
+
+| Value | Additional coverage |
+| --- | --- |
+| `quick` | Default package tests |
+| `full` | Longer accuracy and wrapper-equivalence tests |
+| `interval` | Relief-interval suite |
+| `all` | Both full and interval suites |
+
+For example, from PowerShell:
+
+```powershell
+$env:RELIEVER_TEST_MODE = "full"
+& "D:\Program_Files\R-4.6.1\bin\R.exe" CMD test .
+```
+
+Before release, build the source archive and run `R CMD check --as-cran` on the
+archive rather than only checking the source directory.

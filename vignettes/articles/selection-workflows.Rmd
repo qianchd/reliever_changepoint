@@ -1,0 +1,98 @@
+---
+title: "Model and K selection"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Model and K selection}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+`relieverChangepoint` separates fitting candidate changepoint paths from
+selecting a model and K. The appropriate selector depends on how the loss was
+constructed.
+
+## Selection map
+
+| Situation | Recommended workflow |
+| --- | --- |
+| Ordinary mean, covariance, regression, exponential-family, NMCD, or fixed KDE-L2 loss | `cv.reliever()` |
+| Ordinary lasso path | `cv.reliever(cpd_family = "lasso")` |
+| Interval-adaptive cross-fitted loss | `select_by_run(..., run_type = "recv", cpn_crit = "loss")` |
+| One homogeneous setting from a cross-fitted hyperparameter grid | `select_across_runs(..., run_type = "crossfit_homo_hyper", cpn_crit = "loss")` |
+| Deliberately chosen information criterion | `select_by_run()` |
+| Independent evaluation data | `select_holdout()` |
+
+## CPSS outer cross-validation
+
+For its supported families, `cv.reliever()` constructs sample-efficient CPSS
+outer folds, evaluates candidate segmentations on held-out observations, picks
+the minimum held-out loss, and fits the selected path once on all data. The
+returned `full_data_fit` is therefore ready for downstream use.
+
+The fixed-kernel KDE-L2 interface treats `kernel` and `bandwidth` as fixed
+inputs and selects K. NMCD constructs its reference distribution from each
+outer training fold. The lasso interface can jointly select normalized lambda
+and K.
+
+## Cross-fitted ReCV
+
+Cross-fitted families return the interval-adaptive `recv` loss by default. Fit
+the path first, then select K:
+
+```r
+fit_cf <- reliever(
+  X = x,
+  y = y,
+  cpd_family = "lasso_crossfit",
+  cpn_max = 5,
+  dm = 15,
+  cov_rate = 0.7,
+  method = "SN",
+  nfolds = 2,
+  nlambda = 25
+)
+
+selected <- select_by_run(
+  result = fit_cf,
+  run_type = "recv",
+  cpn_crit = "loss"
+)
+```
+
+To select one hyperparameter jointly with K, request the homogeneous outputs
+when fitting. The order of `loss_output_types` does not matter, but `"recv"`
+must be included.
+
+```r
+fit_cf <- reliever(
+  X = x,
+  y = y,
+  cpd_family = "lasso_crossfit",
+  cpn_max = 5,
+  dm = 15,
+  cov_rate = 0.7,
+  method = "SN",
+  nfolds = 2,
+  nlambda = 25,
+  loss_output_types = c("recv", "crossfit_homo_hyper")
+)
+
+selected <- select_across_runs(
+  result = fit_cf,
+  run_type = "crossfit_homo_hyper",
+  cpn_crit = "loss"
+)
+```
+
+If either unpenalized ReCV rule selects too many changepoints, changing
+`cpn_crit = "loss"` to `cpn_crit = "sic"` adds a `log(n) * K` penalty.
+
+## Information criteria and hold-out data
+
+`select_by_run()` applies a criterion separately to each stored path. `"sic"`
+uses the stored additive loss directly, whereas `"rss_sic"` first applies the
+log-RSS transformation. The latter may be preferable for an RSS loss when its
+residual variance is unknown or potentially heterogeneous.
+
+`select_holdout()` evaluates candidates on independent data. For a custom loss,
+confirm that its external scoring rule has the intended statistical meaning.

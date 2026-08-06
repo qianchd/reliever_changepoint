@@ -1,0 +1,13 @@
+# Keep package sources, generated documentation, and configuration files
+# byte-stable across macOS, Linux, and Windows checkouts.
+* text=auto eol=lf
+
+# Common binary artifacts must never pass through line-ending conversion.
+*.gif binary
+*.jpeg binary
+*.jpg binary
+*.pdf binary
+*.png binary
+*.rda binary
+*.RData binary
+*.rds binary

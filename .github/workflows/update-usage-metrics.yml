@@ -1,0 +1,44 @@
+name: Update usage metrics
+
+on:
+  schedule:
+    # Run on days 1, 9, 17, and 25 with a three-day reporting delay.
+    - cron: "23 2 1,9,17,25 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-usage-metrics:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Test metrics updater
+        run: python -m unittest discover -s dev/metrics -p "test_*.py"
+
+      - name: Collect usage metrics
+        env:
+          GH_TRAFFIC_TOKEN: ${{ secrets.GH_TRAFFIC_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python dev/metrics/update_github_usage_metrics.py
+
+      - name: Commit updated metrics
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dev/metrics/data/github_traffic_daily.csv \
+            dev/metrics/data/github_usage_snapshots.csv
+          if git diff --cached --quiet; then
+            echo "No usage metric changes to commit."
+            exit 0
+          fi
+          git commit -m "Update GitHub usage metrics"
+          git push

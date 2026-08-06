@@ -1,0 +1,99 @@
+---
+title: "Writing a custom interval loss"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Writing a custom interval loss}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+`reliever_generic()` extends the search engine to an interval loss supplied in
+R. The same function declares its outputs and evaluates fitted intervals.
+
+## Minimum contract
+
+Before searching, `reliever_generic()` makes a virtual call with
+`is_virtual_run = TRUE`. Return either a positive integer or a list containing
+`n_loss_outputs` and optional `loss_output_meta`.
+
+During the search, the function fits observations `l:r`, scores observations
+`l_end:r_end`, and returns `list(loss = ...)`. The loss must have one row per
+scored observation and one column per declared output. A vector is accepted for
+a single output.
+
+## Worked example
+
+This loss fits a multivariate mean and returns the mean squared residual for
+each evaluation row.
+
+```{r custom-loss}
+library(relieverChangepoint)
+
+custom_mean_loss <- function(data, l, r, l_end = l, r_end = r,
+                             save_model = FALSE,
+                             is_virtual_run = FALSE) {
+  if (is_virtual_run) {
+    return(list(
+      n_loss_outputs = 1L,
+      loss_output_meta = data.frame(
+        loss_output_id = 1L,
+        row_type = "custom_mean",
+        loss_kind = "rss"
+      )
+    ))
+  }
+
+  data <- as.matrix(data)
+  center <- colMeans(data[l:r, , drop = FALSE])
+  residual <- sweep(
+    data[l_end:r_end, , drop = FALSE],
+    MARGIN = 2L,
+    STATS = center
+  )
+  list(loss = rowMeans(residual^2))
+}
+
+set.seed(2026)
+n_seg <- 100L
+x <- rbind(
+  matrix(rnorm(n_seg * 5, 0, 0.5), n_seg, 5),
+  matrix(rnorm(n_seg * 5, 4, 0.5), n_seg, 5),
+  matrix(rnorm(n_seg * 5, -4, 0.5), n_seg, 5)
+)
+
+path <- reliever_generic(
+  data = x,
+  reg_fun = custom_mean_loss,
+  cpn_max = 4,
+  dm = 15,
+  cov_rate = 0.7,
+  method = "SN",
+  dc_grid_size = 10
+)
+
+selected <- select_by_run(result = path, cpn_crit = "rss_sic")
+selected
+stopifnot(identical(selected$K_hat, 2L))
+```
+
+## Metadata and multiple outputs
+
+`loss_output_meta` may include `loss_output_id`, `row_type`, `hyper_value`,
+`hyper_name`, `default_selection`, and `loss_kind`. Metadata drive readable
+summaries, plotting defaults, and explicit output selection. Unrecognized
+columns are retained.
+
+When several outputs are declared, `run_cpd_ids` controls which output losses
+receive changepoint searches. Advanced users should use explicit `run_ids` when
+comparing only deliberately comparable stored paths.
+
+## Outer-CV compatibility
+
+Use `cv.reliever_generic()` when the interval model can be trained on one set
+of rows and evaluated on held-out rows through the same loss contract. The
+function selects a candidate and returns an automatic full-data refit in
+`full_data_fit`.
+
+For interval-level cross-fitting, start from `reg_fun_crossfit_template()`. A
+classifier whose fit requires a global fold partition must use ordered
+prediction folds; see `reg_fun_clf_crossfit_template()`.

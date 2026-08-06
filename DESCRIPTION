@@ -1,0 +1,44 @@
+Package: relieverChangepoint
+Title: Efficient Changepoint Detection and Model Selection
+Version: 0.9.0
+Authors@R:
+    c(person("Chengde", "Qian", email = "qianchd@gmail.com",
+             role = c("aut", "cre")),
+      person("Guanghui", "Wang", email = "ghwang.nk@gmail.com",
+             role = "aut"),
+      person("Changliang", "Zou", email = "chlzou.nk@gmail.com",
+             role = "aut"))
+Maintainer: Chengde Qian <qianchd@gmail.com>
+Description: Detects changepoints in settings where repeatedly fitting models
+    over candidate intervals is computationally expensive. Built-in tools cover
+    mean, regression, kernel, nonparametric, and classifier-based changes, with
+    search methods including segment neighbourhood, optimal partitioning,
+    PELT, wild binary segmentation, seeded binary segmentation, and binary
+    segmentation. Information criteria can select the number of changepoints;
+    hold-out, recycled cross-validation, and outer cross-validation can also
+    select model hyperparameters when the loss family provides comparable
+    candidates. The Reliever methodology is described in Qian, Wang and Zou (2025)
+    <https://www.jmlr.org/papers/v26/24-1108.html>, and the cross-fitting tools
+    are based on Qian, Wang, Wang and Zou (2024) <doi:10.48550/arXiv.2411.07874>
+    and Zou, Wang and Li (2020) <doi:10.1214/19-AOS1814>.
+License: GPL-3
+Encoding: UTF-8
+SystemRequirements: C++17
+Roxygen: list(markdown = TRUE)
+URL: https://qianchd.github.io/reliever_changepoint/,
+    https://github.com/qianchd/reliever_changepoint
+BugReports: https://github.com/qianchd/reliever_changepoint/issues
+LinkingTo:
+    Rcpp,
+    RcppArmadillo
+Imports:
+    glmnet (>= 5.0.0),
+    R6,
+    Rcpp
+Suggests:
+    nnet,
+    ranger,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Config/roxygen2/version: 8.1.0
+Config/Needs/website: r-lib/pkgdown

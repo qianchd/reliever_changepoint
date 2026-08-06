@@ -1,0 +1,94 @@
+---
+title: "Get started with relieverChangepoint"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Get started with relieverChangepoint}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+`relieverChangepoint` fits changepoint paths efficiently when fitting a model
+on every possible interval would be costly. The package also supplies several
+ways to select model settings and the number of changepoints, denoted by K.
+
+## Choose an entry point
+
+For most first analyses, use `cv.reliever()`. It uses CPSS outer
+cross-validation to select K and then automatically refits the selected path on
+all observations.
+
+| Task | Entry point |
+| --- | --- |
+| Select K for an ordinary built-in family | `cv.reliever()` |
+| Retain a complete built-in candidate path | `reliever()` |
+| Fit a custom interval loss | `reliever_generic()` |
+| Apply outer CV to a compatible custom loss | `cv.reliever_generic()` |
+
+The cross-fitted families use a different selection workflow, described in
+[Model and K selection](selection-workflows.html).
+
+## A complete mean-change analysis
+
+The following series has changepoints after observations 100 and 200.
+
+```{r mean-data}
+library(relieverChangepoint)
+
+set.seed(2026)
+n_seg <- 100L
+x <- c(
+  rnorm(n_seg, mean = 0, sd = 0.5),
+  rnorm(n_seg, mean = 4, sd = 0.5),
+  rnorm(n_seg, mean = -4, sd = 0.5)
+)
+```
+
+Fit, select K, and refit on all observations in one call:
+
+```{r mean-fit}
+fit <- cv.reliever(
+  X = x,
+  cpn_max = 4,
+  dm = 15,
+  cov_rate = 0.7,
+  method = "SN",
+  nfolds = 5,
+  dc_grid_size = 10
+)
+
+summary(fit)
+stopifnot(identical(summary(fit)$K_hat, 2L))
+```
+
+`fit$full_data_fit` is the final full-data changepoint fit. There is no need to
+call `reliever()` again.
+
+```{r mean-plot, fig.width=7, fig.height=4}
+plot_reliever_data(result = fit, data = x)
+```
+
+## Keep the whole path instead
+
+Use `reliever()` when you want all candidate segmentations or intend to apply a
+post-fit selection rule.
+
+```{r mean-path}
+path <- reliever(
+  X = x,
+  cpn_max = 4,
+  dm = 15,
+  cov_rate = 0.7,
+  method = "SN",
+  dc_grid_size = 10
+)
+
+path$cpd_path$candidates
+select_by_run(result = path, cpn_crit = "rss_sic")
+```
+
+Next, see the [selection guide](selection-workflows.html) and the complete
+[built-in family guide](built-in-families.html).
