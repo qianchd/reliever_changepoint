@@ -1,2 +1,3 @@
 snapshot_date_utc,repository,traffic_start_utc,traffic_end_utc,stars,forks,release_asset_downloads,views,daily_unique_visitors,clones,daily_unique_cloners
 2026-08-18,qianchd/reliever_changepoint,2026-06-30,2026-08-15,0,0,0,35,7,85,36
+2026-08-25,qianchd/reliever_changepoint,2026-06-30,2026-08-22,0,0,0,45,11,105,45
